@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import os, glob, platform
 
 #find out if we're running on mac or linux and set the dynamic library extension
