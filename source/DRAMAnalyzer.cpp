@@ -23,8 +23,12 @@ void DRAMAnalyzer::WorkerThread()
 	mResults->AddChannelBubblesWillAppearOn( mSettings->mRASbChannel );
 
 	mRASb = GetAnalyzerChannelData( mSettings->mRASbChannel );
+	mCASb = GetAnalyzerChannelData( mSettings->mCASbChannel );
+	mWb = GetAnalyzerChannelData( mSettings->mWbChannel );
+	mOEb = GetAnalyzerChannelData( mSettings->mOEbChannel );
 
 	for( ; ; ) {
+
 
 	  if( mRASb->GetBitState() == BIT_HIGH ) {
 	    U64 starting_sample = mRASb->GetSampleNumber();
@@ -43,6 +47,8 @@ void DRAMAnalyzer::WorkerThread()
 	  } else {
 	    mRASb->AdvanceToNextEdge();
 	  }
+
+          CheckIfThreadShouldExit();
 	}
 }
 
