@@ -4,8 +4,6 @@
 #include <AnalyzerHelpers.h>
 
 DRAMSimulationDataGenerator::DRAMSimulationDataGenerator()
-:	mSerialText( "My first analyzer, woo hoo!" ),
-	mStringIndex( 0 )
 {
 }
 
@@ -18,54 +16,30 @@ void DRAMSimulationDataGenerator::Initialize( U32 simulation_sample_rate, DRAMAn
 	mSimulationSampleRateHz = simulation_sample_rate;
 	mSettings = settings;
 
-	mSerialSimulationData.SetChannel( mSettings->mInputChannel );
-	mSerialSimulationData.SetSampleRate( simulation_sample_rate );
-	mSerialSimulationData.SetInitialBitState( BIT_HIGH );
+	mRASb = mSimulationData.Add( mSettings->mRASbChannel, mSimulationSampleRateHz, BIT_HIGH);
+	mCASb = mSimulationData.Add( mSettings->mCASbChannel, mSimulationSampleRateHz, BIT_HIGH);
+	mWb   = mSimulationData.Add( mSettings->mWbChannel, mSimulationSampleRateHz, BIT_HIGH);
+	mOEb  = mSimulationData.Add( mSettings->mOEbChannel, mSimulationSampleRateHz, BIT_HIGH);
 }
 
 U32 DRAMSimulationDataGenerator::GenerateSimulationData( U64 largest_sample_requested, U32 sample_rate, SimulationChannelDescriptor** simulation_channel )
 {
 	U64 adjusted_largest_sample_requested = AnalyzerHelpers::AdjustSimulationTargetSample( largest_sample_requested, sample_rate, mSimulationSampleRateHz );
 
-	while( mSerialSimulationData.GetCurrentSampleNumber() < adjusted_largest_sample_requested )
+	while( mRASb->GetCurrentSampleNumber() < adjusted_largest_sample_requested )
 	{
-		CreateSerialByte();
+	  mSimulationData.AdvanceAll( 1000);
+	  mRASb->Transition();
+	  mSimulationData.AdvanceAll( 1000);
+	  mCASb->Transition();
+	  mSimulationData.AdvanceAll( 1000);
+	  mCASb->Transition();
+	  mSimulationData.AdvanceAll( 1000);
+	  mRASb->Transition();
 	}
 
-	*simulation_channel = &mSerialSimulationData;
-	return 1;
+	*simulation_channel = mSimulationData.GetArray();
+	return mSimulationData.GetCount();
 }
 
-void DRAMSimulationDataGenerator::CreateSerialByte()
-{
-	U32 samples_per_bit = mSimulationSampleRateHz / mSettings->mBitRate;
 
-	U8 byte = mSerialText[ mStringIndex ];
-	mStringIndex++;
-	if( mStringIndex == mSerialText.size() )
-		mStringIndex = 0;
-
-	//we're currenty high
-	//let's move forward a little
-	mSerialSimulationData.Advance( samples_per_bit * 10 );
-
-	mSerialSimulationData.Transition();  //low-going edge for start bit
-	mSerialSimulationData.Advance( samples_per_bit );  //add start bit time
-
-	U8 mask = 0x1 << 7;
-	for( U32 i=0; i<8; i++ )
-	{
-		if( ( byte & mask ) != 0 )
-			mSerialSimulationData.TransitionIfNeeded( BIT_HIGH );
-		else
-			mSerialSimulationData.TransitionIfNeeded( BIT_LOW );
-
-		mSerialSimulationData.Advance( samples_per_bit );
-		mask = mask >> 1;
-	}
-
-	mSerialSimulationData.TransitionIfNeeded( BIT_HIGH ); //we need to end high
-
-	//lets pad the end a bit for the stop bit:
-	mSerialSimulationData.Advance( samples_per_bit );
-}

@@ -20,17 +20,15 @@ public:
 	virtual bool NeedsRerun();
 
 protected: //vars
-	std::auto_ptr< DRAMAnalyzerSettings > mSettings;
-	std::auto_ptr< DRAMAnalyzerResults > mResults;
-	AnalyzerChannelData* mSerial;
+	std::shared_ptr< DRAMAnalyzerSettings > mSettings;
+	std::shared_ptr< DRAMAnalyzerResults > mResults;
+	AnalyzerChannelData* mRASb;
+	AnalyzerChannelData* mCASb;
+	AnalyzerChannelData* mWb;
+	AnalyzerChannelData* mOEb;
 
 	DRAMSimulationDataGenerator mSimulationDataGenerator;
 	bool mSimulationInitilized;
-
-	//Serial analysis vars:
-	U32 mSampleRateHz;
-	U32 mStartOfStopBitOffset;
-	U32 mEndOfStopBitOffset;
 };
 
 extern "C" ANALYZER_EXPORT const char* __cdecl GetAnalyzerName();

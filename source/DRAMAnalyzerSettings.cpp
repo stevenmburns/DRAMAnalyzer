@@ -3,28 +3,41 @@
 
 
 DRAMAnalyzerSettings::DRAMAnalyzerSettings()
-:	mInputChannel( UNDEFINED_CHANNEL ),
-	mBitRate( 9600 )
+:	mRASbChannel( UNDEFINED_CHANNEL ),
+	mCASbChannel( UNDEFINED_CHANNEL ),
+	mWbChannel( UNDEFINED_CHANNEL ),
+	mOEbChannel( UNDEFINED_CHANNEL )
 {
-	mInputChannelInterface.reset( new AnalyzerSettingInterfaceChannel() );
-	mInputChannelInterface->SetTitleAndTooltip( "Serial", "Standard Asynchoronous DRAM Analyzer" );
-	mInputChannelInterface->SetChannel( mInputChannel );
+	mRASbChannelInterface.reset( new AnalyzerSettingInterfaceChannel() );
+	mRASbChannelInterface->SetTitleAndTooltip( "RASb", "Standard Asynchoronous DRAM Analyzer" );
+	mRASbChannelInterface->SetChannel( mRASbChannel );
 
-	mBitRateInterface.reset( new AnalyzerSettingInterfaceInteger() );
-	mBitRateInterface->SetTitleAndTooltip( "Bit Rate (Bits/S)",  "Specify the bit rate in bits per second." );
-	mBitRateInterface->SetMax( 6000000 );
-	mBitRateInterface->SetMin( 1 );
-	mBitRateInterface->SetInteger( mBitRate );
+	mCASbChannelInterface.reset( new AnalyzerSettingInterfaceChannel() );
+	mCASbChannelInterface->SetTitleAndTooltip( "CASb", "Standard Asynchoronous DRAM Analyzer" );
+	mCASbChannelInterface->SetChannel( mCASbChannel );
 
-	AddInterface( mInputChannelInterface.get() );
-	AddInterface( mBitRateInterface.get() );
+	mWbChannelInterface.reset( new AnalyzerSettingInterfaceChannel() );
+	mWbChannelInterface->SetTitleAndTooltip( "Wb", "Standard Asynchoronous DRAM Analyzer" );
+	mWbChannelInterface->SetChannel( mWbChannel );
+
+	mOEbChannelInterface.reset( new AnalyzerSettingInterfaceChannel() );
+	mOEbChannelInterface->SetTitleAndTooltip( "OEb", "Standard Asynchoronous DRAM Analyzer" );
+	mOEbChannelInterface->SetChannel( mOEbChannel );
+
+	AddInterface( mRASbChannelInterface.get() );
+	AddInterface( mCASbChannelInterface.get() );
+	AddInterface( mWbChannelInterface.get() );
+	AddInterface( mOEbChannelInterface.get() );
 
 	AddExportOption( 0, "Export as text/csv file" );
 	AddExportExtension( 0, "text", "txt" );
 	AddExportExtension( 0, "csv", "csv" );
 
 	ClearChannels();
-	AddChannel( mInputChannel, "Serial", false );
+	AddChannel( mRASbChannel, "RASb", false );
+	AddChannel( mCASbChannel, "CASb", false );
+	AddChannel( mWbChannel, "Wb", false );
+	AddChannel( mOEbChannel, "OEb", false );
 }
 
 DRAMAnalyzerSettings::~DRAMAnalyzerSettings()
@@ -33,19 +46,27 @@ DRAMAnalyzerSettings::~DRAMAnalyzerSettings()
 
 bool DRAMAnalyzerSettings::SetSettingsFromInterfaces()
 {
-	mInputChannel = mInputChannelInterface->GetChannel();
-	mBitRate = mBitRateInterface->GetInteger();
+	mRASbChannel = mRASbChannelInterface->GetChannel();
+	mCASbChannel = mCASbChannelInterface->GetChannel();
+	mWbChannel = mWbChannelInterface->GetChannel();
+	mOEbChannel = mOEbChannelInterface->GetChannel();
 
 	ClearChannels();
-	AddChannel( mInputChannel, "Asynchoronous DRAM Analyzer", true );
+	AddChannel( mRASbChannel, "Asynchoronous DRAM Analyzer", true );
+	AddChannel( mCASbChannel, "Asynchoronous DRAM Analyzer", true );
+	AddChannel( mWbChannel, "Asynchoronous DRAM Analyzer", true );
+	AddChannel( mOEbChannel, "Asynchoronous DRAM Analyzer", true );
 
 	return true;
 }
 
 void DRAMAnalyzerSettings::UpdateInterfacesFromSettings()
 {
-	mInputChannelInterface->SetChannel( mInputChannel );
-	mBitRateInterface->SetInteger( mBitRate );
+	mRASbChannelInterface->SetChannel( mRASbChannel );
+	mCASbChannelInterface->SetChannel( mCASbChannel );
+	mWbChannelInterface->SetChannel( mWbChannel );
+	mOEbChannelInterface->SetChannel( mOEbChannel );
+
 }
 
 void DRAMAnalyzerSettings::LoadSettings( const char* settings )
@@ -53,11 +74,16 @@ void DRAMAnalyzerSettings::LoadSettings( const char* settings )
 	SimpleArchive text_archive;
 	text_archive.SetString( settings );
 
-	text_archive >> mInputChannel;
-	text_archive >> mBitRate;
+	text_archive >> mRASbChannel;
+	text_archive >> mCASbChannel;
+	text_archive >> mWbChannel;
+	text_archive >> mOEbChannel;
 
 	ClearChannels();
-	AddChannel( mInputChannel, "Asynchoronous DRAM Analyzer", true );
+	AddChannel( mRASbChannel, "Asynchoronous DRAM Analyzer", true );
+	AddChannel( mCASbChannel, "Asynchoronous DRAM Analyzer", true );
+	AddChannel( mWbChannel, "Asynchoronous DRAM Analyzer", true );
+	AddChannel( mOEbChannel, "Asynchoronous DRAM Analyzer", true );
 
 	UpdateInterfacesFromSettings();
 }
@@ -66,8 +92,10 @@ const char* DRAMAnalyzerSettings::SaveSettings()
 {
 	SimpleArchive text_archive;
 
-	text_archive << mInputChannel;
-	text_archive << mBitRate;
+	text_archive << mRASbChannel;
+	text_archive << mCASbChannel;
+	text_archive << mWbChannel;
+	text_archive << mOEbChannel;
 
 	return SetReturnString( text_archive.GetString() );
 }

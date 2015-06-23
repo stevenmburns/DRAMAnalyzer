@@ -19,11 +19,12 @@ protected:
 	U32 mSimulationSampleRateHz;
 
 protected:
-	void CreateSerialByte();
-	std::string mSerialText;
-	U32 mStringIndex;
 
-	SimulationChannelDescriptor mSerialSimulationData;
+        SimulationChannelDescriptorGroup mSimulationData;
 
+	SimulationChannelDescriptor* mRASb;
+	SimulationChannelDescriptor* mCASb;
+	SimulationChannelDescriptor* mWb;
+	SimulationChannelDescriptor* mOEb;
 };
 #endif //DRAM_SIMULATION_DATA_GENERATOR

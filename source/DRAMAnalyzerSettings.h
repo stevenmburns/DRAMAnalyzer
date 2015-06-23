@@ -16,12 +16,21 @@ public:
 	virtual const char* SaveSettings();
 
 	
-	Channel mInputChannel;
-	U32 mBitRate;
+	Channel mRASbChannel;
+	Channel mCASbChannel;
+	Channel mWbChannel;
+	Channel mOEbChannel;
+	std::vector<Channel> mAddressChannel;
+	std::vector<Channel> mDataChannel;
 
 protected:
-	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mInputChannelInterface;
-	std::auto_ptr< AnalyzerSettingInterfaceInteger >	mBitRateInterface;
+	std::shared_ptr<AnalyzerSettingInterfaceChannel>	mRASbChannelInterface;
+	std::shared_ptr<AnalyzerSettingInterfaceChannel>	mCASbChannelInterface;
+	std::shared_ptr<AnalyzerSettingInterfaceChannel>	mWbChannelInterface;
+	std::shared_ptr<AnalyzerSettingInterfaceChannel>	mOEbChannelInterface;
+	std::vector<std::shared_ptr<AnalyzerSettingInterfaceChannel> >	mAddressChannelInterface;
+	std::vector<std::shared_ptr<AnalyzerSettingInterfaceChannel> >	mDataChannelInterface;
+
 };
 
 #endif //DRAM_ANALYZER_SETTINGS
