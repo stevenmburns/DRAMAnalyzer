@@ -47,77 +47,82 @@ void DRAMAnalyzer::WorkerThread()
 	    mRASb->AdvanceToAbsPosition( mCASb->GetSampleNumber());
 	  }
 
+	  bool curr_RASb_is_high = mRASb->GetBitState() == BIT_HIGH;
+	  bool curr_CASb_is_high = mCASb->GetBitState() == BIT_HIGH;
+
+
 	  if ( prev_RASb_is_high && prev_CASb_is_high) {
-	    if ( mRASb->GetBitState() == BIT_HIGH) {
-	      if ( mCASb->GetBitState() == BIT_HIGH) {
-		/* no transition */
-	      } else {
-		/* CAS */
-	      }
-	    } else {
-	      if ( mCASb->GetBitState() == BIT_HIGH) {
-		/* RAS */
-		valid_row_addr = true;
-	      } else {
-		/* simultaneous flip */
-	      }
-	    }
-	  } else if ( !prev_RASb_is_high &&  prev_CASb_is_high) {
-	    if ( mRASb->GetBitState() == BIT_HIGH) {
-	      if ( mCASb->GetBitState() == BIT_HIGH) {
-		/* RASb up */
-	      } else {
-		/* simult */
-	      }
-	    } else {
-	      if ( mCASb->GetBitState() == BIT_HIGH) {
-		/* no transition  */
-	      } else {
-		/* write/read */
-		U64 starting_sample = mCASb->GetSampleNumber();
-
-		std::cout << "write/read: " << starting_sample << std::endl;
-
-		//we have a byte to save. 
-		Frame frame;
-		frame.mData1 = 1;
-		frame.mFlags = 0;
-		frame.mStartingSampleInclusive = starting_sample;
-		frame.mEndingSampleInclusive = starting_sample + 100;
-
-		mResults->AddMarker( starting_sample, AnalyzerResults::DownArrow, mSettings->mCASbChannel);
-		mResults->AddFrame( frame );
-		mResults->CommitResults();
-		ReportProgress( frame.mEndingSampleInclusive );
-	      }
+	    if        (  curr_RASb_is_high &&  curr_CASb_is_high) {
+	      /* no transition */
+	    } else if (  curr_RASb_is_high && !curr_CASb_is_high) {
+	      /* CAS */
+	    } else if ( !curr_RASb_is_high &&  curr_CASb_is_high) {
+	      /* RAS */
+	      valid_row_addr = true;
+	      U64 starting_sample = mRASb->GetSampleNumber();
+	      mResults->AddMarker( starting_sample, AnalyzerResults::DownArrow, mSettings->mRASbChannel);
+              mResults->AddResultString( "Valid Addr Required");
+	      mResults->CommitResults();
+	      ReportProgress( starting_sample);
+	    } else if ( !curr_RASb_is_high && !curr_CASb_is_high) {
+	      /* simultaneous flip */
 	    }
 	  } else if (  prev_RASb_is_high && !prev_CASb_is_high) {
-	    if ( mRASb->GetBitState() == BIT_HIGH) {
-	      if ( mCASb->GetBitState() == BIT_HIGH) {
-		valid_row_addr = false;
-	      } else {
-		/* no transition */
-	      }
-	    } else {
-	      if ( mCASb->GetBitState() == BIT_HIGH) {
-		/* simultaneous flip */
-	      } else {
-		/* RAS down after CAS down */
-	      }
+	    if        (  curr_RASb_is_high &&  curr_CASb_is_high) {
+	      valid_row_addr = false;
+	    } else if (  curr_RASb_is_high && !curr_CASb_is_high) {
+	      /* no transition */
+	    } else if ( !curr_RASb_is_high &&  curr_CASb_is_high) {
+	      /* simultaneous flip */
+	    } else if ( !curr_RASb_is_high && !curr_CASb_is_high) {
+	      /* RAS down after CAS down (hidden refresh) */
+	      U64 starting_sample = mRASb->GetSampleNumber();
+	      mResults->AddMarker( starting_sample, AnalyzerResults::Square, mSettings->mRASbChannel);
+	      mResults->CommitResults();
+	      ReportProgress( starting_sample);
+	    }
+	  } else if ( !prev_RASb_is_high &&  prev_CASb_is_high) {
+	    if        (  curr_RASb_is_high &&  curr_CASb_is_high) {
+	      /* RASb up */
+	    } else if (  curr_RASb_is_high && !curr_CASb_is_high) {
+	      /* simult */
+	    } else if ( !curr_RASb_is_high &&  curr_CASb_is_high) {
+	      /* no transition  */
+	    } else if ( !curr_RASb_is_high && !curr_CASb_is_high) {
+	      /* write/read */
+	      U64 starting_sample = mCASb->GetSampleNumber();
+	      mResults->AddMarker( starting_sample, AnalyzerResults::DownArrow, mSettings->mCASbChannel);
+	      mResults->CommitResults();
+	      ReportProgress( starting_sample);
+
+#if 0
+	      //we have a byte to save. 
+	      Frame frame;
+	      frame.mData1 = 1;
+	      frame.mFlags = 0;
+	      frame.mStartingSampleInclusive = starting_sample;
+	      frame.mEndingSampleInclusive = starting_sample + 100;
+	      mResults->AddFrame( frame );
+	      mResults->CommitResults();
+	      ReportProgress( frame.mEndingSampleInclusive );
+#endif
+
 	    }
 	  } else if ( !prev_RASb_is_high && !prev_CASb_is_high) {
-	    if ( mRASb->GetBitState() == BIT_HIGH) {
-	      if ( mCASb->GetBitState() == BIT_HIGH) {
-		/* simultaneous flip */
-	      } else {
-		/* RAS up */
-	      }
-	    } else {
-	      if ( mCASb->GetBitState() == BIT_HIGH) {
-		/* CAS up */
-	      } else {
-		/* no transition */
-	      }
+	    if        (  curr_RASb_is_high &&  curr_CASb_is_high) {
+	      /* simultaneous flip */
+	    } else if (  curr_RASb_is_high && !curr_CASb_is_high) {
+	      /* RAS up */
+	      /* write/read */
+	      U64 starting_sample = mRASb->GetSampleNumber();
+	      mResults->AddMarker( starting_sample, AnalyzerResults::UpArrow, mSettings->mRASbChannel);
+	      mResults->CommitResults();
+	      ReportProgress( starting_sample);
+
+	    } else if ( !curr_RASb_is_high &&  curr_CASb_is_high) {
+	      /* CAS up */
+	    } else if ( !curr_RASb_is_high && !curr_CASb_is_high) {
+	      /* no transition */
 	    }
 	  }
 
